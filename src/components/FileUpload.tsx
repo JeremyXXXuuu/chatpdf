@@ -1,12 +1,32 @@
 "use client";
-import { Inbox } from "lucide-react";
 import React from "react";
+import axios from "axios";
+import { Inbox, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 import { useDropzone } from "react-dropzone";
+import { toast } from "react-hot-toast";
 import { uploadS3 } from "@/lib/s3";
 
 type Props = {};
 
 const FileUpload = (props: Props) => {
+  const [uploading, setUploading] = React.useState(false);
+  const { mutate, isLoading } = useMutation({
+    mutationFn: async ({
+      file_key,
+      file_name,
+    }: {
+      file_key: string;
+      file_name: string;
+    }) => {
+      const response = await axios.post("/api/create-chat", {
+        file_key,
+        file_name,
+      });
+      return response.data;
+    },
+  });
+
   const { getRootProps, getInputProps } = useDropzone({
     accept: { "application/pdf": [".pdf"] },
     multiple: false,
@@ -14,14 +34,29 @@ const FileUpload = (props: Props) => {
       console.log(files);
       const file = files[0];
       if (file.size > 10 * 1024 * 1024) {
-        alert("File size must be less than 10MB");
+        toast.error("File size must be less than 10MB");
         return;
       }
       try {
+        setUploading(true);
         const data = await uploadS3(file);
+        if (!data?.file_key || !data?.file_name) {
+          toast.error("Error uploading file");
+          return;
+        }
+        mutate(data, {
+          onSuccess: (data) => {
+            toast.success("File uploaded successfully");
+          },
+          onError: (error) => {
+            toast.error("Error uploading file");
+          },
+        });
         console.log(data);
       } catch (error) {
         console.error(error);
+      } finally {
+        setUploading(false);
       }
     },
   });
@@ -34,10 +69,20 @@ const FileUpload = (props: Props) => {
         })}
       >
         <input {...getInputProps()} />
-        <>
-          <Inbox size={48} className="w-10 h-10" />
-          <p className="mt-2 text-sm">Drop PDF HERE</p>
-        </>
+        {uploading || isLoading ? (
+          <>
+            {/* loading state */}
+            <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
+            <p className="mt-2 text-sm text-slate-400">
+              Spilling Tea to GPT...
+            </p>
+          </>
+        ) : (
+          <>
+            <Inbox className="w-10 h-10 text-blue-500" />
+            <p className="mt-2 text-sm text-slate-400">Drop PDF Here</p>
+          </>
+        )}
       </div>
     </div>
   );
