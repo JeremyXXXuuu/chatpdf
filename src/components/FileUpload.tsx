@@ -46,6 +46,7 @@ const FileUpload = (props: Props) => {
         }
         mutate(data, {
           onSuccess: (data) => {
+            console.log(data);
             toast.success("File uploaded successfully");
           },
           onError: (error) => {
