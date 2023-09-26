@@ -12,6 +12,7 @@ export default function Home() {
     <>
       {session ? (
         <div>
+          {JSON.stringify(session, null, 2)}
           <h1>Hello {session.user?.name}</h1>
           {/* <button onClick={() => signOut({ callbackUrl: SIGNOUT_URL })}> Sign Out</button>{" "} */}
           <Button onClick={() => signOut()}> Sign out</Button>
@@ -22,7 +23,7 @@ export default function Home() {
           <Button onClick={() => signIn()}> Sign In</Button>{" "}
         </div>
       )}
-      <FileUpload />
+      {/* <FileUpload /> */}
     </>
   );
 }

@@ -4,7 +4,6 @@ import type { NextAuthOptions, Profile, Session } from "next-auth";
 
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/lib/db/index";
-import { users, accounts, sessions, verificationTokens } from "@/lib/db/schema";
 
 import axios, { AxiosError, AxiosResponse } from "axios";
 
@@ -65,6 +64,7 @@ export const authOptions: NextAuthOptions = {
       },
     },
   ],
+  session: { strategy: "jwt" },
   callbacks: {
     async jwt({ token, account, profile }) {
       // Persist the OAuth access_token to the token right after signin
@@ -84,7 +84,6 @@ export const authOptions: NextAuthOptions = {
         return refreshAccessToken(token);
       }
     },
-
     async session({
       session,
       token,
