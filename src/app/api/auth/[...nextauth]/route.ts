@@ -1,11 +1,13 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions, Profile, Session } from "next-auth";
-
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/lib/db/index";
-
+import { users, accounts, sessions, verificationTokens } from "@/lib/db/schema";
 import axios, { AxiosError, AxiosResponse } from "axios";
+import { eq } from "drizzle-orm";
+import { compare } from "bcrypt";
 
 interface Oro_Profile extends Profile {
   profile: {
@@ -26,12 +28,52 @@ interface RefreshTokenResponse {
 export const authOptions: NextAuthOptions = {
   // DB adapter
   adapter: DrizzleAdapter(db),
+  session: { strategy: "jwt" },
   // Configure one or more authentication providers
   providers: [
+    CredentialsProvider({
+      // The name to display on the sign in form (e.g. "Sign in with...")
+      name: "Credentials",
+      // `credentials` is used to generate a form on the sign in page.
+      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
+      // e.g. domain, username, password, 2FA token, etc.
+      // You can pass any HTML attribute to the <input> tag through the object.
+      credentials: {
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "example@example.com",
+        },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials.password) {
+          return null;
+        }
+        let user;
+        user = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, credentials.email));
+        if (user) user = user[0];
+        if (!user || !(await compare(credentials.password, user.password!))) {
+          console.log("user not found");
+          return null;
+        }
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          randomKey: "Hey cool",
+        };
+      },
+    }),
+
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
+
     {
       id: "orosound",
       name: "Orosound",
@@ -64,25 +106,29 @@ export const authOptions: NextAuthOptions = {
       },
     },
   ],
-  session: { strategy: "jwt" },
+
   callbacks: {
-    async jwt({ token, account, profile }) {
+    async jwt({ user, token, account, profile }) {
       // Persist the OAuth access_token to the token right after signin
-      if (account) {
+      if (account && account.type === "oauth") {
         token.id = profile!.sub;
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         // token.group = (profile as Oro_Profile).profile.group;
         token.expire_at = (account.expires_at as number) * 1000;
-        return token;
+        if (account.provider === "orosound") {
+          if (Date.now() < (token.expire_at as number)) {
+            console.log("token not expired");
+            return token;
+          } else {
+            console.log("refresh token");
+            return refreshAccessToken(token);
+          }
+        }
+      } else if (account && account.type === "credentials") {
+        token.id = user.id;
       }
-      if (Date.now() < (token.expire_at as number)) {
-        console.log("token not expired");
-        return token;
-      } else {
-        console.log("refresh token");
-        return refreshAccessToken(token);
-      }
+      return token;
     },
     async session({
       session,
@@ -95,7 +141,7 @@ export const authOptions: NextAuthOptions = {
     }) {
       // Send properties to the client, like an access_token from a provider.
       // session.user.group = token.group as string;
-      session.user.token = token.accessToken as string;
+      session.user.token = (token.accessToken as string) || "credentials";
       session.error = token.error as string;
       return session;
     },
