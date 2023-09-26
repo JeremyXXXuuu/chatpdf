@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { NextAuthProvider } from "./nextAuthProvider";
 import { Inter } from "next/font/google";
 import Providers from "@/components/provider";
 
@@ -16,9 +17,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <Providers>
-        <body className={inter.className}>{children}</body>
-      </Providers>
+      <NextAuthProvider>
+        <Providers>
+          <body className={inter.className}>{children}</body>
+        </Providers>
+      </NextAuthProvider>
     </html>
   );
 }
