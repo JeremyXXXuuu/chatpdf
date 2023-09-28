@@ -109,6 +109,8 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async jwt({ user, token, account, profile }) {
+      // console.log("user", user);
+      // console.log("token", token);
       // Persist the OAuth access_token to the token right after signin
       if (account && account.type === "oauth") {
         token.id = profile!.sub;
@@ -142,6 +144,7 @@ export const authOptions: NextAuthOptions = {
       // Send properties to the client, like an access_token from a provider.
       // session.user.group = token.group as string;
       session.user.token = (token.accessToken as string) || "credentials";
+      session.user.id = token.sub;
       session.error = token.error as string;
       return session;
     },
