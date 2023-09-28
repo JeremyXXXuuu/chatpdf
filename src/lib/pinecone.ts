@@ -8,6 +8,7 @@ import {
 } from "@pinecone-database/doc-splitter";
 import { getEmbeddings } from "./embeddings";
 import { convertToAscii } from "./utils";
+import path from "path";
 
 export const getPineconeClient = () => {
   return new Pinecone({
@@ -25,12 +26,12 @@ type PDFPage = {
 
 export async function loadS3IntoPinecone(file_key: string) {
   // 1. abtain pdf file from s3
-  console.log("loading S3 Into local file system");
+  console.log("loading S3 Into local file system, file_key: ", file_key);
   const file_name = await downloadFromS3(file_key);
   if (!file_name) {
     throw new Error("file_name is undefined");
   }
-  const loader = new PDFLoader(file_name, {});
+  const loader = new PDFLoader(path.join(process.cwd(), file_name), {});
   const document = (await loader.load()) as PDFPage[];
 
   // 2. split and segment pdf file

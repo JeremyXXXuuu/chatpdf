@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@types/jquery": "^3.5.19",
-    "@types/md5": "^2.3.2"
+    "@types/md5": "^2.3.2",
+    "encoding": "^0.1.13"
   }
 }

@@ -109,8 +109,6 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async jwt({ user, token, account, profile }) {
-      // console.log("user", user);
-      // console.log("token", token);
       // Persist the OAuth access_token to the token right after signin
       if (account && account.type === "oauth") {
         token.id = profile!.sub;
