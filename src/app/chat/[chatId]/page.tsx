@@ -1,8 +1,6 @@
-"use client";
 import React from "react";
 import { redirect } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { type Session } from "next-auth";
+import { Session, getServerSession } from "next-auth";
 import Loading from "@/app/loading";
 
 import { db } from "@/lib/db";
@@ -10,6 +8,8 @@ import { eq } from "drizzle-orm";
 import ChatSideBar from "@/components/ChatSideBar";
 import PDFViewer from "@/components/PDFViewer";
 import Chat from "@/components/Chat";
+import { chats } from "@/lib/db/schema";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 type Props = {
   params: {
     chatId: string;
@@ -22,12 +22,18 @@ type MySession = Session & {
   };
 };
 
-const Page = ({ params: { chatId } }: Props) => {
-  const { data: session, status, update } = useSession();
-  //   console.log("session", session);
-  //   console.log("status", status);
-  if (status === "loading") return <Loading />;
+const ChatPage = async ({ params: { chatId } }: Props) => {
+  const session = await getServerSession(authOptions);
   const userId = (session as MySession).user?.id;
+  console.log("userId", userId);
+  const _chats = await db.select().from(chats).where(eq(chats.userId, userId));
+  if (!_chats) return redirect("/");
+
+  if (!_chats.find((chat) => chat.id === parseInt(chatId))) {
+    return redirect("/");
+  }
+
+  const currentChat = _chats.find((chat) => chat.id === parseInt(chatId));
 
   return (
     <>
@@ -35,13 +41,17 @@ const Page = ({ params: { chatId } }: Props) => {
         <div className="flex h-screen">
           <div className="flex w-full h-full">
             <div className="flex-[1] h-full">
-              <ChatSideBar chatId={123} chats={[]} isPro={true} />
+              <ChatSideBar
+                chatId={parseInt(chatId)}
+                chats={_chats}
+                isPro={true}
+              />
             </div>
             <div className="flex-[5] h-full ">
-              <PDFViewer pdf_url="file:///C:/Users/Oro-ltp20/Downloads/deposit-receipt.pdf" />
+              <PDFViewer pdf_url={currentChat?.pdfUrl!} />
             </div>
             <div className="flex-[3] h-full overflow-auto">
-              <Chat />
+              <Chat chatId={chatId} />
             </div>
           </div>
         </div>
@@ -53,4 +63,4 @@ const Page = ({ params: { chatId } }: Props) => {
   );
 };
 
-export default Page;
+export default ChatPage;

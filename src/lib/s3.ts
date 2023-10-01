@@ -1,10 +1,6 @@
 import AWS from "aws-sdk";
 
 export async function uploadS3(file: File) {
-  console.log(process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID);
-  console.log(process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY);
-  console.log(process.env.NEXT_PUBLIC_AWS_BUCKET_NAME);
-  console.log(process.env.NEXT_PUBLIC_AWS_BUCKET_REGION);
   try {
     AWS.config.update({
       accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID,
@@ -43,14 +39,6 @@ export async function uploadS3(file: File) {
 }
 
 export function getS3Url(file_key: string) {
-  const s3 = new AWS.S3({
-    params: { Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME },
-    region: process.env.NEXT_PUBLIC_AWS_BUCKET_REGION,
-  });
-  const params = {
-    Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME!,
-    Key: file_key,
-  };
-  const url = s3.getSignedUrl("getObject", params);
+  const url = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.eu-west-3.amazonaws.com/${file_key}`;
   return url;
 }
