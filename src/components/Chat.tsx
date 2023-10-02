@@ -43,23 +43,24 @@ const Chat = ({ chatId }: Props) => {
   }, [messages]);
 
   return (
-    <div id="message-container">
-      <div>Chat</div>
-      <div>
+    <div id="message-container" className="flex flex-col h-screen">
+      <div className="h-10 m-auto">Chat</div>
+      <div className="flex-grow overflow-auto">
         <MessageList messages={messages} />
       </div>
-      <div>
+      <div className="">
         <form
           onSubmit={handleSubmit}
-          className="flex sticky bottom-0 inset-x-0 px-2 py-4 bg-white"
+          className="flex gap-2 inset-x-0 px-2 py-4 bg-white"
         >
           <Input
             value={input}
             onChange={handleInputChange}
+            placeholder="Ask any question..."
             className="w-full"
           />
           <Button>
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-6" />
           </Button>
         </form>
       </div>
