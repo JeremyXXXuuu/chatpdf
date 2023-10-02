@@ -40,7 +40,7 @@ export async function loadS3IntoPinecone(file_key: string) {
   // 3. vectorize and embed pdf file
   const vectors = await Promise.all(documents.flat().map(embedDocument));
 
-  //4. uipload to pinecone
+  //4. upload to pinecone
   const pinecone = getPineconeClient();
   const pineconeIndex = await pinecone.index("chatpdf");
   const namespace = pineconeIndex.namespace(convertToAscii(file_key));

@@ -2,22 +2,29 @@ import { db } from "@/lib/db";
 import { chats, messages as _messages } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { Configuration, OpenAIApi } from "openai-edge";
-import { Message } from "ai/react";
+import {
+  ChatCompletionRequestMessage,
+  Configuration,
+  OpenAIApi,
+} from "openai-edge";
 import { OpenAIStream, StreamingTextResponse } from "ai";
 import { getContext } from "@/lib/context";
+import { Message } from "ai/react";
 
 export const runtime = "edge";
 
 const config = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
-  basePath: "https://api.openai.com/v1",
 });
 const openai = new OpenAIApi(config);
 
 export async function POST(req: Request) {
   try {
-    const { messages, chatId } = await req.json();
+    const { messages, chatId }: { messages: Message[]; chatId: number } =
+      await req.json();
+    console.log(messages);
+    console.log(chatId);
+
     const _chats = await db.select().from(chats).where(eq(chats.id, chatId));
     if (_chats.length != 1) {
       return NextResponse.json({ error: "chat not found" }, { status: 404 });
@@ -26,7 +33,7 @@ export async function POST(req: Request) {
     const lastMessage = messages[messages.length - 1];
     const context = await getContext(lastMessage.content, fileKey);
 
-    const prompt = {
+    const prompt: ChatCompletionRequestMessage = {
       role: "system",
       content: `AI assistant is a brand new, powerful, human-like artificial intelligence.
           The traits of AI include expert knowledge, helpfulness, cleverness, and articulateness.
@@ -43,12 +50,14 @@ export async function POST(req: Request) {
           AI assistant will not invent anything that is not drawn directly from the context.
           `,
     };
+
+    const chat_messages = messages.filter(
+      (message: Message) => message.role === "user"
+    );
+
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
-      messages: [
-        prompt,
-        ...messages.filter((message: Message) => message.role === "user"),
-      ],
+      messages: [prompt, ...chat_messages],
       stream: true,
     });
     const stream = OpenAIStream(response, {
@@ -70,5 +79,8 @@ export async function POST(req: Request) {
       },
     });
     return new StreamingTextResponse(stream);
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: error }, { status: 500 });
+  }
 }
