@@ -5,7 +5,7 @@ import FileUpload from "@/components/FileUpload";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { useSession, signIn, signOut } from "next-auth/react";
 import type { NextAuthOptions, Session } from "next-auth";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -17,6 +17,7 @@ type MySession = Session & {
 };
 export default function Home() {
   const { data: session, status } = useSession();
+  const [isOro, setIsOro] = useState(false);
   const userId = (session as MySession)?.user?.id;
   const { data: chats } = useQuery({
     queryKey: ["chats", userId],
@@ -32,11 +33,21 @@ export default function Home() {
     console.log("chats", chats);
   }
 
+  useEffect(() => {
+    if (session?.user?.email) {
+      const domain = session?.user?.email.match(/@([^\.]+)/);
+      const oro = domain && domain[1];
+      if (oro && oro === "orosound") {
+        setIsOro(true);
+      }
+    }
+  }, [session]);
+
   return (
     <>
-      <div className="flex items-center">
+      {/* <div className="flex items-center">
         <h1 className="mr-3 text-5xl font-semibold">Chat with any PDF</h1>
-      </div>
+      </div> */}
       <div className="flex mt-2">
         {session && chats && chats[0] && (
           <>
@@ -54,17 +65,17 @@ export default function Home() {
       <p className="max-w-xl mt-1 text-lg text-slate-600">
         Anwer questions and understand research with AI
       </p>
-      {session && session.user?.email ? (
+      {session && isOro ? (
         <div>
-          {JSON.stringify(session, null, 2)}
-          <h1>Hello {session.user?.name}</h1>
+          {/* {JSON.stringify(session, null, 2)} */}
+          <h1>Hello {session.user?.name} from orosound</h1>
           <FileUpload />
           {/* <button onClick={() => signOut({ callbackUrl: SIGNOUT_URL })}> Sign Out</button>{" "} */}
           <Button onClick={() => signOut()}> Sign out</Button>
         </div>
       ) : (
         <div>
-          <h1>Please Login</h1>
+          <h1>Please Login with Orosound</h1>
           <Button onClick={() => signIn()}> Sign In</Button>{" "}
         </div>
       )}
