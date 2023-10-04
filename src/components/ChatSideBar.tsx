@@ -31,7 +31,7 @@ const ChatSideBar = ({ chats, chatId, isPro }: Props) => {
           <Link key={chat.id} href={`/chat/${chat.id}`}>
             <div
               className={cn("rounded-lg p-3 text-slate-300 flex items-center", {
-                "bg-blue-600 text-white": chat.id === chatId,
+                "bg-gray-600 text-white": chat.id === chatId,
                 "hover:text-white": chat.id !== chatId,
               })}
             >

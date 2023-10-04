@@ -80,7 +80,7 @@ const FileUpload = (props: Props) => {
           </>
         ) : (
           <>
-            <Inbox className="w-10 h-10 text-blue-500" />
+            <Inbox className="w-10 h-10 text-gray-500" />
             <p className="mt-2 text-sm text-slate-400">Drop PDF Here</p>
           </>
         )}
