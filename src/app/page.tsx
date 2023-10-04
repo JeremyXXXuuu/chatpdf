@@ -39,17 +39,19 @@ export default function Home() {
               <h1 className="mr-3 text-5xl font-semibold">Chat with any PDF</h1>
             </div>
             <div className="flex mt-2">
-              {session && chats && chats[0] && (
+              {session && (
                 <div className="flex gap-5">
                   <Avatar>
                     <AvatarImage src={`${session.user?.image!}`} />
                     <AvatarFallback>{session.user?.name![1]}</AvatarFallback>
                   </Avatar>
-                  <Link href={`/chat/${chats[0].id}`}>
-                    <Button>
-                      Go to Chats <ArrowRight className="ml-2" />
-                    </Button>
-                  </Link>
+                  {chats && chats[0] && (
+                    <Link href={`/chat/${chats[0].id}`}>
+                      <Button>
+                        Go to Chats <ArrowRight className="ml-2" />
+                      </Button>
+                    </Link>
+                  )}
                   <Button onClick={() => signOut()}> Sign out</Button>
                   {/* <div className="ml-3">
               <SubscriptionButton isPro={isPro} />
