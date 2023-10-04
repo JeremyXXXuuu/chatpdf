@@ -44,7 +44,7 @@ const Chat = ({ chatId }: Props) => {
 
   return (
     <div id="message-container" className="flex flex-col h-screen">
-      <div className="h-10 m-auto">Chat</div>
+      <div className="h-10 m-auto text-lg">Chat</div>
       <div className="flex-grow overflow-auto">
         <MessageList messages={messages} />
       </div>
@@ -59,7 +59,7 @@ const Chat = ({ chatId }: Props) => {
             placeholder="Ask any question..."
             className="w-full"
           />
-          <Button>
+          <Button className="bg-gray-600">
             <Send className="h-4 w-6" />
           </Button>
         </form>
