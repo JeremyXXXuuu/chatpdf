@@ -40,7 +40,7 @@ const ChatPage = async ({ params: { chatId } }: Props) => {
       {session ? (
         <div className="flex h-screen">
           <div className="flex w-full h-full">
-            <div className="flex-[1] h-full">
+            <div className="flex-[2] h-full overflow-auto">
               <ChatSideBar
                 chatId={parseInt(chatId)}
                 chats={_chats}
