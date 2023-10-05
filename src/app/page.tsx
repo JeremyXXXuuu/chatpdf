@@ -42,8 +42,8 @@ export default function Home() {
               {session && (
                 <div className="flex gap-5">
                   <Avatar>
-                    <AvatarImage src={`${session.user?.image!}`} />
-                    <AvatarFallback>{session.user?.name![1]}</AvatarFallback>
+                    <AvatarImage src={`${session.user?.image}`} />
+                    <AvatarFallback>{session.user?.name![0]}</AvatarFallback>
                   </Avatar>
                   {chats && chats[0] && (
                     <Link href={`/chat/${chats[0].id}`}>
