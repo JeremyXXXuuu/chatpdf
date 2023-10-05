@@ -18,7 +18,9 @@ export const chats = pgTable("chats", {
   pdfName: text("pdf_name").notNull(),
   pdfUrl: text("pdf_url").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  userId: varchar("user_id").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
   fileKey: text("file_key").notNull(),
 });
 
@@ -85,3 +87,18 @@ export const verificationTokens = pgTable(
     compoundKey: primaryKey(vt.identifier, vt.token),
   })
 );
+
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 256 })
+    .notNull()
+    .unique(),
+  stripeSubscriptionId: varchar("stripe_subscription_id", {
+    length: 256,
+  }).unique(),
+  stripePriceId: varchar("stripe_price_id", { length: 256 }),
+  stripeCurrentPeriodEnd: timestamp("stripe_current_period_ended_at"),
+});
