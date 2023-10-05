@@ -1,21 +1,13 @@
 import { loadS3IntoPinecone } from "@/lib/pinecone";
 import { NextRequest, NextResponse } from "next/server";
-import { Session, getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { chats } from "@/lib/db/schema";
 import { getS3Url } from "@/lib/s3";
-
-type MySession = Session & {
-  user: {
-    id: string;
-  };
-};
+import { auth } from "@/app/auth/index";
 
 export async function POST(req: NextRequest, res: NextResponse) {
-  const session = await getServerSession(authOptions);
-  if (!session && !session!.user) return NextResponse.error();
-  const userId = (session as MySession)!.user!.id;
+  const { userId } = await auth();
+  if (!userId) return NextResponse.error();
   try {
     const body = await req.json();
     const { file_key, file_name } = body;
