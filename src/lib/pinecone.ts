@@ -31,7 +31,7 @@ export async function loadS3IntoPinecone(file_key: string) {
   if (!file_name) {
     throw new Error("file_name is undefined");
   }
-  const loader = new PDFLoader(path.join(process.cwd(), file_name), {});
+  const loader = new PDFLoader(path.join(file_name), {});
   const document = (await loader.load()) as PDFPage[];
 
   // 2. split and segment pdf file
