@@ -6,10 +6,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { useSession, signIn, signOut } from "next-auth/react";
 import type { NextAuthOptions, Session } from "next-auth";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { checkSubscription } from "@/lib/subscription";
 
 type MySession = Session & {
   user: {
@@ -30,6 +31,45 @@ export default function Home() {
     },
   });
 
+  const { data: isPro } = useQuery({
+    // queryKey: ["isPro", userId],
+    queryFn: async () => {
+      const res = await fetch("/api/check-subs", {
+        method: "POST",
+        body: JSON.stringify({ userId }),
+      });
+      return res.json();
+    },
+  });
+  console.log(isPro);
+
+  // const [chats, isPro] = useQueries({
+  //   queries: [
+  //     {
+  //       queryKey: ["chats", userId],
+  //       queryFn: async () => {
+  //         const res = await fetch("/api/get-chat", {
+  //           method: "POST",
+  //           body: JSON.stringify({ userId }),
+  //         });
+  //         return res.json();
+  //       },
+  //     },
+  //     {
+  //       queryKey: ["isPro", userId],
+  //       queryFn: async () => {
+  //         const res = await fetch("/api/check-subs", {
+  //           method: "GET",
+  //           body: JSON.stringify({ userId }),
+  //         });
+  //         return res.json();
+  //       },
+  //     },
+  //   ],
+  // });
+  // console.log(isPro.data);
+  // console.log(chats.data);
+  //
   return (
     <>
       <div className="w-screen min-h-screen xlinear-gradient(to right, rgb(243, 244, 246), rgb(209, 213, 219))">
